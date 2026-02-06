@@ -6,310 +6,263 @@ package lab_3;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.io.File;
 
 public class JuegoDeCartasGUI extends JPanel {
     private JFrame frameContenedor;
     private JButton[][] botonesCartas;
-    private JLabel lblNombreJ1, lblAciertosJ1, lblTurnoJ1;
-    private JLabel lblNombreJ2, lblAciertosJ2, lblTurnoJ2;
-    private JButton btnReiniciar;
+    private JLabel lblNombreJ1, lblAciertosJ1;
+    private JLabel lblNombreJ2, lblAciertosJ2;
     
-    // Componentes de pantalla inicio
-    private JTextField txtJugador1;
-    private JTextField txtJugador2;
-    private JButton btnComenzar;
-    private JPanel panelInicio;
-    private JPanel panelJuego;
+    private JTextField txtJugador1, txtJugador2;
+    private JPanel panelInicio, panelJuego;
     
+    private JButton primerBotonSeleccionado = null;
+    private JButton segundoBotonSeleccionado = null;
+    private int primeraFila = -1, primeraColumna = -1;
+    private int segundaFila = -1, segundaColumna = -1;
+    
+    private int[][] valoresCartas;
+    private ImageIcon[] imagenesBalatro;
+    private ImageIcon dorsoCarta;
+    private Image imgFondo;
+
+    private final int ANCHO_CARTA = 80; 
+    private final int ALTO_CARTA = 107;
+
     public JuegoDeCartasGUI(JFrame frame) {
         this.frameContenedor = frame;
         this.botonesCartas = new JButton[6][6];
+        this.valoresCartas = new int[6][6];
+        
+        cargarRecursos();
         
         setLayout(new CardLayout());
-        setBackground(Color.WHITE);
-        
         crearPantallaInicio();
         crearPantallaJuego();
         
         add(panelInicio, "INICIO");
         add(panelJuego, "JUEGO");
     }
-    
-    private void crearPantallaInicio() {
-        panelInicio = new JPanel(new BorderLayout());
-        panelInicio.setBackground(new Color(227, 242, 253));
+
+    private void cargarRecursos() {
+        imagenesBalatro = new ImageIcon[6]; // Solo 6 imágenes ahora
+        String rutaCarpeta = "img" + File.separator;
         
-        // Panel principal central
-        JPanel panelCentral = new JPanel();
-        panelCentral.setLayout(new BoxLayout(panelCentral, BoxLayout.Y_AXIS));
-        panelCentral.setBackground(new Color(227, 242, 253));
-        panelCentral.setBorder(BorderFactory.createEmptyBorder(50, 50, 50, 50));
-        
-        // Titulo
-        JLabel lblTitulo = new JLabel("POKEMON MEMORY GAME");
-        lblTitulo.setFont(new Font("Arial", Font.BOLD, 32));
-        lblTitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblTitulo.setForeground(new Color(211, 47, 47));
-        
-        // Espaciador
-        panelCentral.add(Box.createRigidArea(new Dimension(0, 30)));
-        panelCentral.add(lblTitulo);
-        panelCentral.add(Box.createRigidArea(new Dimension(0, 50)));
-        
-        // Panel Jugador 1
-        JPanel panelJugador1 = crearPanelJugadorInicio("Jugador 1:", 1);
-        panelCentral.add(panelJugador1);
-        panelCentral.add(Box.createRigidArea(new Dimension(0, 20)));
-        
-        // Panel Jugador 2
-        JPanel panelJugador2 = crearPanelJugadorInicio("Jugador 2:", 2);
-        panelCentral.add(panelJugador2);
-        panelCentral.add(Box.createRigidArea(new Dimension(0, 30)));
-        
-        // Boton comenzar
-        btnComenzar = new JButton("COMENZAR JUEGO");
-        btnComenzar.setFont(new Font("Arial", Font.BOLD, 18));
-        btnComenzar.setBackground(new Color(33, 150, 243));
-        btnComenzar.setForeground(Color.WHITE);
-        btnComenzar.setFocusPainted(false);
-        btnComenzar.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnComenzar.setPreferredSize(new Dimension(250, 50));
-        btnComenzar.setMaximumSize(new Dimension(250, 50));
-        
-        btnComenzar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Aqui va la logica para iniciar juego
+        try {
+            imgFondo = new ImageIcon(rutaCarpeta + "FondoBalatro.png").getImage();
+            for (int i = 0; i < 6; i++) {
+                imagenesBalatro[i] = escalarImagen(new ImageIcon(rutaCarpeta + "Carta" + (i + 1) + ".png"), ANCHO_CARTA, ALTO_CARTA);
             }
-        });
-        
-        panelCentral.add(btnComenzar);
-        
-        panelInicio.add(panelCentral, BorderLayout.CENTER);
-    }
-    
-    private JPanel crearPanelJugadorInicio(String etiqueta, int numeroJugador) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        panel.setBackground(new Color(227, 242, 253));
-        panel.setMaximumSize(new Dimension(500, 60));
-        
-        JLabel lbl = new JLabel(etiqueta);
-        lbl.setFont(new Font("Arial", Font.BOLD, 16));
-        
-        JTextField txt = new JTextField(20);
-        txt.setFont(new Font("Arial", Font.PLAIN, 14));
-        
-        if (numeroJugador == 1) {
-            txtJugador1 = txt;
-        } else {
-            txtJugador2 = txt;
+            dorsoCarta = escalarImagen(new ImageIcon(rutaCarpeta + "dorso.png"), ANCHO_CARTA, ALTO_CARTA);
+        } catch (Exception e) {
+            System.err.println("Error al cargar imágenes: " + e.getMessage());
         }
-        
-        panel.add(lbl);
-        panel.add(txt);
-        
-        return panel;
     }
-    
+
+    private ImageIcon escalarImagen(ImageIcon icono, int ancho, int alto) {
+        if (icono.getImageLoadStatus() != MediaTracker.COMPLETE) return null;
+        Image img = icono.getImage();
+        return new ImageIcon(img.getScaledInstance(ancho, alto, Image.SCALE_SMOOTH));
+    }
+
+    class PanelConFondo extends JPanel {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (imgFondo != null) g.drawImage(imgFondo, 0, 0, getWidth(), getHeight(), this);
+            else { g.setColor(new Color(20, 20, 30)); g.fillRect(0, 0, getWidth(), getHeight()); }
+        }
+    }
+
+    private void crearPantallaInicio() {
+        panelInicio = new PanelConFondo();
+        panelInicio.setLayout(new GridBagLayout());
+        JPanel contenedor = new JPanel();
+        contenedor.setLayout(new BoxLayout(contenedor, BoxLayout.Y_AXIS));
+        contenedor.setBackground(new Color(10, 10, 15, 230));
+        contenedor.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+
+        JLabel lblTitulo = new JLabel("BALATRO");
+        lblTitulo.setFont(new Font("Impact", Font.PLAIN, 40));
+        lblTitulo.setForeground(new Color(255, 50, 50));
+        lblTitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        txtJugador1 = crearTextField("Jimbo");
+        txtJugador2 = crearTextField("Player 2");
+
+        JButton btnComenzar = new JButton("INICIAR");
+        estilizarBoton(btnComenzar, new Color(255, 50, 50));
+        btnComenzar.addActionListener(e -> iniciarJuegoGUI());
+
+        contenedor.add(lblTitulo);
+        contenedor.add(Box.createRigidArea(new Dimension(0, 20)));
+        contenedor.add(txtJugador1);
+        contenedor.add(Box.createRigidArea(new Dimension(0, 10)));
+        contenedor.add(txtJugador2);
+        contenedor.add(Box.createRigidArea(new Dimension(0, 20)));
+        contenedor.add(btnComenzar);
+        panelInicio.add(contenedor);
+    }
+
+    private JTextField crearTextField(String def) {
+        JTextField tf = new JTextField(def);
+        tf.setMaximumSize(new Dimension(180, 30));
+        tf.setHorizontalAlignment(JTextField.CENTER);
+        tf.setBackground(new Color(30, 30, 40));
+        tf.setForeground(Color.WHITE);
+        tf.setCaretColor(Color.WHITE);
+        return tf;
+    }
+
     private void crearPantallaJuego() {
         panelJuego = new JPanel(new BorderLayout());
-        panelJuego.setBackground(Color.WHITE);
-        
-        // Panel superior con informacion de jugadores
-        JPanel panelSuperior = new JPanel(new GridLayout(1, 2, 20, 0));
-        panelSuperior.setBackground(Color.WHITE);
-        panelSuperior.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        
-        // Panel Jugador 1
-        JPanel panelJ1 = crearPanelJugadorJuego(1);
-        panelSuperior.add(panelJ1);
-        
-        // Panel Jugador 2
-        JPanel panelJ2 = crearPanelJugadorJuego(2);
-        panelSuperior.add(panelJ2);
-        
+        panelJuego.setBackground(new Color(15, 15, 20));
+
+        JPanel panelSuperior = new JPanel(new GridLayout(1, 2, 5, 0));
+        panelSuperior.setPreferredSize(new Dimension(0, 60));
+        panelSuperior.add(crearPanelJugadorJuego(1));
+        panelSuperior.add(crearPanelJugadorJuego(2));
         panelJuego.add(panelSuperior, BorderLayout.NORTH);
-        
-        // Panel central con tablero
-        JPanel panelTablero = new JPanel(new GridLayout(6, 6, 5, 5));
-        panelTablero.setBackground(new Color(227, 242, 253));
-        panelTablero.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        
+
+        JPanel panelTablero = new JPanel(new GridLayout(6, 6, 4, 4));
+        panelTablero.setOpaque(false);
+        panelTablero.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 6; j++) {
-                JButton btnCarta = new JButton("?");
-                btnCarta.setFont(new Font("Arial", Font.BOLD, 24));
-                btnCarta.setBackground(new Color(211, 47, 47));
-                btnCarta.setForeground(Color.WHITE);
-                btnCarta.setFocusPainted(false);
-                
-                final int fila = i;
-                final int columna = j;
-                
-                btnCarta.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        // Aqui va la logica para seleccionar carta
-                    }
-                });
-                
-                botonesCartas[i][j] = btnCarta;
-                panelTablero.add(btnCarta);
+                JButton btn = new JButton(dorsoCarta);
+                btn.setBackground(new Color(40, 40, 45));
+                btn.setBorder(null);
+                final int f = i, c = j;
+                btn.addActionListener(e -> seleccionarCarta(f, c));
+                botonesCartas[i][j] = btn;
+                panelTablero.add(btn);
             }
         }
-        
         panelJuego.add(panelTablero, BorderLayout.CENTER);
-        
-        // Panel inferior con boton reiniciar
-        JPanel panelInferior = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        panelInferior.setBackground(Color.WHITE);
-        panelInferior.setBorder(BorderFactory.createEmptyBorder(10, 10, 20, 10));
-        
-        btnReiniciar = new JButton("REINICIAR JUEGO");
-        btnReiniciar.setFont(new Font("Arial", Font.BOLD, 14));
-        btnReiniciar.setBackground(new Color(76, 175, 80));
-        btnReiniciar.setForeground(Color.WHITE);
-        btnReiniciar.setFocusPainted(false);
-        
-        btnReiniciar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Aqui va la logica para reiniciar juego
-            }
-        });
-        
-        panelInferior.add(btnReiniciar);
-        panelJuego.add(panelInferior, BorderLayout.SOUTH);
+
+        JButton btnSalir = new JButton("SALIR");
+        estilizarBoton(btnSalir, new Color(60, 60, 70));
+        btnSalir.addActionListener(e -> volverAlMenu());
+        panelJuego.add(btnSalir, BorderLayout.SOUTH);
     }
-    
-    private JPanel crearPanelJugadorJuego(int numeroJugador) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(numeroJugador == 1 ? new Color(255, 235, 59) : new Color(255, 82, 82));
-        panel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        panel.setPreferredSize(new Dimension(300, 100));
-        
-        if (numeroJugador == 1) {
-            lblNombreJ1 = new JLabel("Jugador 1: ");
-            lblNombreJ1.setFont(new Font("Arial", Font.BOLD, 16));
-            lblNombreJ1.setAlignmentX(Component.CENTER_ALIGNMENT);
-            
-            lblAciertosJ1 = new JLabel("Aciertos: 0");
-            lblAciertosJ1.setFont(new Font("Arial", Font.PLAIN, 14));
-            lblAciertosJ1.setAlignmentX(Component.CENTER_ALIGNMENT);
-            
-            lblTurnoJ1 = new JLabel("");
-            lblTurnoJ1.setFont(new Font("Arial", Font.BOLD, 14));
-            lblTurnoJ1.setForeground(new Color(0, 128, 0));
-            lblTurnoJ1.setAlignmentX(Component.CENTER_ALIGNMENT);
-            
-            panel.add(Box.createVerticalGlue());
-            panel.add(lblNombreJ1);
-            panel.add(Box.createRigidArea(new Dimension(0, 5)));
-            panel.add(lblAciertosJ1);
-            panel.add(Box.createRigidArea(new Dimension(0, 5)));
-            panel.add(lblTurnoJ1);
-            panel.add(Box.createVerticalGlue());
+
+    private void estilizarBoton(JButton btn, Color color) {
+        btn.setFont(new Font("Impact", Font.PLAIN, 18));
+        btn.setBackground(color);
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+    }
+
+    private JPanel crearPanelJugadorJuego(int num) {
+        JPanel p = new JPanel(new GridLayout(2, 1));
+        p.setBackground(num == 1 ? new Color(180, 40, 40) : new Color(40, 80, 180));
+        JLabel nom = (num == 1) ? (lblNombreJ1 = new JLabel()) : (lblNombreJ2 = new JLabel());
+        JLabel aci = (num == 1) ? (lblAciertosJ1 = new JLabel("0")) : (lblAciertosJ2 = new JLabel("0"));
+        for (JLabel l : new JLabel[]{nom, aci}) {
+            l.setHorizontalAlignment(SwingConstants.CENTER);
+            l.setForeground(Color.WHITE);
+            p.add(l);
+        }
+        return p;
+    }
+
+    private void seleccionarCarta(int f, int c) {
+        JButton btn = botonesCartas[f][c];
+        if (btn.getBackground().equals(Color.BLACK) || btn == primerBotonSeleccionado) return;
+
+        btn.setIcon(imagenesBalatro[valoresCartas[f][c]]);
+
+        if (primerBotonSeleccionado == null) {
+            primerBotonSeleccionado = btn;
+            primeraFila = f; primeraColumna = c;
         } else {
-            lblNombreJ2 = new JLabel("Jugador 2: ");
-            lblNombreJ2.setFont(new Font("Arial", Font.BOLD, 16));
-            lblNombreJ2.setAlignmentX(Component.CENTER_ALIGNMENT);
+            segundoBotonSeleccionado = btn;
+            segundaFila = f; segundaColumna = c;
             
-            lblAciertosJ2 = new JLabel("Aciertos: 0");
-            lblAciertosJ2.setFont(new Font("Arial", Font.PLAIN, 14));
-            lblAciertosJ2.setAlignmentX(Component.CENTER_ALIGNMENT);
-            
-            lblTurnoJ2 = new JLabel("");
-            lblTurnoJ2.setFont(new Font("Arial", Font.BOLD, 14));
-            lblTurnoJ2.setForeground(new Color(0, 128, 0));
-            lblTurnoJ2.setAlignmentX(Component.CENTER_ALIGNMENT);
-            
-            panel.add(Box.createVerticalGlue());
-            panel.add(lblNombreJ2);
-            panel.add(Box.createRigidArea(new Dimension(0, 5)));
-            panel.add(lblAciertosJ2);
-            panel.add(Box.createRigidArea(new Dimension(0, 5)));
-            panel.add(lblTurnoJ2);
-            panel.add(Box.createVerticalGlue());
+            if (valoresCartas[primeraFila][primeraColumna] == valoresCartas[segundaFila][segundaColumna]) {
+                primerBotonSeleccionado.setBackground(Color.BLACK);
+                segundoBotonSeleccionado.setBackground(Color.BLACK);
+                sumarPunto();
+            } else {
+                JOptionPane.showMessageDialog(this, "¡No es coincidencia!");
+                primerBotonSeleccionado.setIcon(dorsoCarta);
+                segundoBotonSeleccionado.setIcon(dorsoCarta);
+                cambiarTurno();
+            }
+            primerBotonSeleccionado = null;
+            segundoBotonSeleccionado = null;
+        }
+    }
+
+    private void sumarPunto() {
+        JLabel l = lblNombreJ1.getForeground() == Color.YELLOW ? lblAciertosJ1 : lblAciertosJ2;
+        l.setText("" + (Integer.parseInt(l.getText()) + 1));
+    }
+
+    private void cambiarTurno() {
+        if (lblNombreJ1.getForeground() == Color.YELLOW) {
+            lblNombreJ1.setForeground(Color.WHITE); lblNombreJ2.setForeground(Color.YELLOW);
+        } else {
+            lblNombreJ1.setForeground(Color.YELLOW); lblNombreJ2.setForeground(Color.WHITE);
+        }
+    }
+
+    private void mezclarCartas() {
+        List<Integer> lista = new ArrayList<>();
+        // Llenar 36 espacios usando 6 imágenes (cada una aparece 6 veces, formando tríos de parejas)
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 6; j++) {
+                lista.add(i);
+            }
+        }
+        Collections.shuffle(lista);
+        int idx = 0;
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 6; j++) {
+                valoresCartas[i][j] = lista.get(idx++);
+            }
+        }
+    }
+
+    private void iniciarJuegoGUI() {
+        lblNombreJ1.setText(txtJugador1.getText());
+        lblNombreJ2.setText(txtJugador2.getText());
+        lblNombreJ1.setForeground(Color.YELLOW);
+        lblAciertosJ1.setText("0"); lblAciertosJ2.setText("0");
+        
+        // Reiniciar visualmente todos los botones antes de empezar
+        for(int i=0; i<6; i++) {
+            for(int j=0; j<6; j++) {
+                botonesCartas[i][j].setIcon(dorsoCarta);
+                botonesCartas[i][j].setBackground(new Color(40, 40, 45));
+            }
         }
         
-        return panel;
+        mezclarCartas();
+        ((CardLayout)getLayout()).show(this, "JUEGO");
     }
-    
-    // Getters para acceder a los componentes desde otras clases
-    public JTextField getTxtJugador1() {
-        return txtJugador1;
+
+    private void volverAlMenu() {
+        primerBotonSeleccionado = null;
+        segundoBotonSeleccionado = null;
+        ((CardLayout)getLayout()).show(this, "INICIO");
     }
-    
-    public JTextField getTxtJugador2() {
-        return txtJugador2;
-    }
-    
-    public JButton getBtnComenzar() {
-        return btnComenzar;
-    }
-    
-    public JButton[][] getBotonesCartas() {
-        return botonesCartas;
-    }
-    
-    public JLabel getLblNombreJ1() {
-        return lblNombreJ1;
-    }
-    
-    public JLabel getLblAciertosJ1() {
-        return lblAciertosJ1;
-    }
-    
-    public JLabel getLblTurnoJ1() {
-        return lblTurnoJ1;
-    }
-    
-    public JLabel getLblNombreJ2() {
-        return lblNombreJ2;
-    }
-    
-    public JLabel getLblAciertosJ2() {
-        return lblAciertosJ2;
-    }
-    
-    public JLabel getLblTurnoJ2() {
-        return lblTurnoJ2;
-    }
-    
-    public JButton getBtnReiniciar() {
-        return btnReiniciar;
-    }
-    
-    public void cambiarAPantallaJuego() {
-        CardLayout cl = (CardLayout) getLayout();
-        cl.show(this, "JUEGO");
-    }
-    
-    public void cambiarAPantallaInicio() {
-        CardLayout cl = (CardLayout) getLayout();
-        cl.show(this, "INICIO");
-    }
-    
-    // Metodo main
+
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                JFrame frame = new JFrame("Pokemon Memory Game");
-                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                frame.setSize(800, 700);
-                frame.setLocationRelativeTo(null);
-                frame.setResizable(false);
-                
-                JuegoDeCartasGUI juegoGUI = new JuegoDeCartasGUI(frame);
-                frame.add(juegoGUI);
-                
-                frame.setVisible(true);
-            }
+        SwingUtilities.invokeLater(() -> {
+            JFrame f = new JFrame("Balatro Mini");
+            f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            f.setSize(550, 750); 
+            f.add(new JuegoDeCartasGUI(f));
+            f.setLocationRelativeTo(null);
+            f.setResizable(false);
+            f.setVisible(true);
         });
     }
 }
