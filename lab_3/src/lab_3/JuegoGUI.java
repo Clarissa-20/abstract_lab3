@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.io.File;
 
-public class JuegoGui extends JPanel implements ControlTurnos, JuegoAcciones {
+public class JuegoGUI extends JPanel implements ControlTurnos, JuegoAcciones {
     private JFrame frameContenedor;
     private CartaBalatro[][] botonesCartas;
     private JLabel lblNombreJ1, lblAciertosJ1;
@@ -32,7 +32,7 @@ public class JuegoGui extends JPanel implements ControlTurnos, JuegoAcciones {
     private final int ANCHO_CARTA = 80; 
     private final int ALTO_CARTA = 107;
 
-    public JuegoGui(JFrame frame) {
+    public JuegoGUI(JFrame frame) {
         this.frameContenedor = frame;
         this.botonesCartas = new CartaBalatro[6][6];
         this.poolDeImagenesContenidoExtra = new ArrayList<>();

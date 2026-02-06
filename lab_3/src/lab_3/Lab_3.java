@@ -14,7 +14,7 @@ public class Lab_3 {
             f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             f.setSize(600, 800); 
             
-            JuegoGui juego = new JuegoGui(f);
+            JuegoGUI juego = new JuegoGUI(f);
             
             f.add(juego);
             f.setLocationRelativeTo(null);
