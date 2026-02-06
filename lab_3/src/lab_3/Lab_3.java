@@ -23,7 +23,7 @@ public class Lab_3 {
             JOptionPane.showMessageDialog(null, "Los nombres son obligatorios");
             return;
         }
-        new JuegoDeCartasGUI(p1, p2).setVisible(true);
+        new JuegoGUI(p1, p2).setVisible(true);
     }
     
 }
