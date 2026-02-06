@@ -4,26 +4,23 @@
  */
 package lab_3;
 
-import javax.swing.JOptionPane;
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
-/**
- *
- * @author HP
- */
 public class Lab_3 {
-
-    /**
-     * @param args the command line arguments
-     */
-   public static void main(String[] args) {
-        String p1 = JOptionPane.showInputDialog("Nombre Jugador 1:");
-        String p2 = JOptionPane.showInputDialog("Nombre Jugador 2:");
-
-        if (p1 == null || p2 == null || p1.trim().isEmpty() || p2.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Los nombres son obligatorios");
-            return;
-        }
-        new JuegoGUI(p1, p2).setVisible(true);
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            JFrame f = new JFrame("Balatro Memory Lab 3");
+            f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            f.setSize(600, 800); 
+            
+            // Instanciamos el panel principal
+            JuegoGui juego = new JuegoGui(f);
+            
+            f.add(juego);
+            f.setLocationRelativeTo(null);
+            f.setResizable(false);
+            f.setVisible(true);
+        });
     }
-    
 }

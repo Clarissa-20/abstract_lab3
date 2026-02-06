@@ -4,10 +4,6 @@
  */
 package lab_3;
 
-/**
- *
- * @author HP
- */
 public abstract class Carta {
     protected int id;
     protected boolean revelada;
