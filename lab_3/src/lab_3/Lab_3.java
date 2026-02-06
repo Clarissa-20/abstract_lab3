@@ -14,7 +14,6 @@ public class Lab_3 {
             f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             f.setSize(600, 800); 
             
-            // Instanciamos el panel principal
             JuegoGui juego = new JuegoGui(f);
             
             f.add(juego);
