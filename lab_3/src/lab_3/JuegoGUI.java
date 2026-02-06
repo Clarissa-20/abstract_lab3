@@ -47,7 +47,7 @@ public class JuegoGui extends JPanel implements ControlTurnos, JuegoAcciones {
     }
 
     private void cargarRecursos() {
-        String rutaBase = "img" + File.separator;
+        String rutaBase = "img/" + File.separator;
         
         for (int i = 1; i <= 18; i++) {
             ImageIcon img = escalarImagenSegura(rutaBase + "Carta" + i + ".png");

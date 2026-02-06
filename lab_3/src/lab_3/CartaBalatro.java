@@ -11,7 +11,7 @@ package lab_3;
 
 import javax.swing.*;
 
-// Hereda de JButton para ser visual y de Carta para la lógica [cite: 43]
+
 public class CartaBalatro extends JButton {
     private int idLogico;
     private boolean estaRevelada = false;
@@ -23,11 +23,11 @@ public class CartaBalatro extends JButton {
         this.frente = frente;
         this.dorso = dorso;
         
-        this.setIcon(dorso); // Inicia boca abajo [cite: 16, 73]
+        this.setIcon(dorso);
         this.setBorderPainted(true);
     }
 
-    // Implementamos los métodos que pide la clase abstracta
+    
     public void mostrar() {
         this.setIcon(frente);
         this.estaRevelada = true;
