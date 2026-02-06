@@ -12,7 +12,7 @@ public abstract class Carta {
     protected int id;
     protected boolean revelada;
     
-    public Carta(int id, boolean revelada){
+    public Carta(int id){
         this.id = id;
         this.revelada = false;
     }
