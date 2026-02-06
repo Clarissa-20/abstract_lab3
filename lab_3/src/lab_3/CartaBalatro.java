@@ -11,23 +11,33 @@ package lab_3;
 
 import javax.swing.*;
 
+// Hereda de JButton para ser visual y de Carta para la lógica [cite: 43]
 public class CartaBalatro extends JButton {
-    private Carta logica; // Referencia a la lógica abstracta
-    private ImageIcon imagenFrente;
-    private ImageIcon imagenDorso;
+    private int idLogico;
+    private boolean estaRevelada = false;
+    private ImageIcon frente;
+    private ImageIcon dorso;
 
     public CartaBalatro(int id, ImageIcon frente, ImageIcon dorso) {
-        // Creamos la lógica anónima o mediante una clase interna
-        this.logica = new Carta(id) {
-            @Override
-            public void mostrar() { setIcon(imagenFrente); setRevelada(true); }
-            @Override
-            public void ocultar() { setIcon(imagenDorso); setRevelada(false); }
-        };
-        this.imagenFrente = frente;
-        this.imagenDorso = dorso;
-        this.setIcon(dorso); // Inicia boca abajo [cite: 18]
-    } 
+        this.idLogico = id;
+        this.frente = frente;
+        this.dorso = dorso;
+        
+        this.setIcon(dorso); // Inicia boca abajo [cite: 16, 73]
+        this.setBorderPainted(true);
+    }
 
-    public Carta getLogica() { return logica; }
+    // Implementamos los métodos que pide la clase abstracta
+    public void mostrar() {
+        this.setIcon(frente);
+        this.estaRevelada = true;
+    }
+
+    public void ocultar() {
+        this.setIcon(dorso);
+        this.estaRevelada = false;
+    }
+
+    public int getIdLogico() { return idLogico; }
+    public boolean isEstaRevelada() { return estaRevelada; }
 }
