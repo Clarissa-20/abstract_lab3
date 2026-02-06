@@ -49,32 +49,61 @@ public class JuegoDeCartasGUI extends JPanel {
     }
 
     private void cargarRecursos() {
-        imagenesBalatro = new ImageIcon[6]; // Solo 6 imágenes ahora
+        imagenesBalatro = new ImageIcon[6];
         String rutaCarpeta = "img" + File.separator;
-        
+
+        // Verificamos si la carpeta existe para depurar
+        File carpeta = new File("img");
+        if (!carpeta.exists()) {
+            System.out.println("ERROR: La carpeta 'img' no existe en: " + carpeta.getAbsolutePath());
+        }
+
         try {
+            // Carga del fondo
             imgFondo = new ImageIcon(rutaCarpeta + "FondoBalatro.png").getImage();
+
             for (int i = 0; i < 6; i++) {
-                imagenesBalatro[i] = escalarImagen(new ImageIcon(rutaCarpeta + "Carta" + (i + 1) + ".png"), ANCHO_CARTA, ALTO_CARTA);
+                String path = rutaCarpeta + "Carta" + (i + 1) + ".png";
+                File archivo = new File(path);
+
+                if (archivo.exists()) {
+                    System.out.println("Cargando: " + path);
+                    // Usamos ImageIO o forzamos la carga con getImage()
+                    ImageIcon tempIcon = new ImageIcon(path);
+                    imagenesBalatro[i] = escalarImagen(tempIcon, ANCHO_CARTA, ALTO_CARTA);
+                } else {
+                    System.out.println("ERROR: No existe el archivo " + path);
+                }
             }
+
             dorsoCarta = escalarImagen(new ImageIcon(rutaCarpeta + "dorso.png"), ANCHO_CARTA, ALTO_CARTA);
+
         } catch (Exception e) {
-            System.err.println("Error al cargar imágenes: " + e.getMessage());
+            System.err.println("Excepción al cargar recursos: " + e.getMessage());
         }
     }
 
-    private ImageIcon escalarImagen(ImageIcon icono, int ancho, int alto) {
-        if (icono.getImageLoadStatus() != MediaTracker.COMPLETE) return null;
+   private ImageIcon escalarImagen(ImageIcon icono, int ancho, int alto) {
+        // Forzamos la carga de la imagen para evitar que devuelva un icono vacío
         Image img = icono.getImage();
-        return new ImageIcon(img.getScaledInstance(ancho, alto, Image.SCALE_SMOOTH));
-    }
+        if (img == null) return null;
 
+        // El método getScaledInstance a veces falla si la imagen no ha terminado de cargar
+        // Usamos SCALE_FAST para asegurar que pinte algo rápidamente
+        Image nuevaImg = img.getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
+        ImageIcon finalIcon = new ImageIcon(nuevaImg);
+
+        // Verificación final
+        if (finalIcon.getIconWidth() <= 0) {
+            System.out.println("Advertencia: Icono generado con tamaño 0");
+        }
+        return finalIcon;
+    }
     class PanelConFondo extends JPanel {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             if (imgFondo != null) g.drawImage(imgFondo, 0, 0, getWidth(), getHeight(), this);
-            else { g.setColor(new Color(20, 20, 30)); g.fillRect(0, 0, getWidth(), getHeight()); }
         }
     }
 
@@ -86,7 +115,7 @@ public class JuegoDeCartasGUI extends JPanel {
         contenedor.setBackground(new Color(10, 10, 15, 230));
         contenedor.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
 
-        JLabel lblTitulo = new JLabel("BALATRO");
+        JLabel lblTitulo = new JLabel("BALATRO TEST");
         lblTitulo.setFont(new Font("Impact", Font.PLAIN, 40));
         lblTitulo.setForeground(new Color(255, 50, 50));
         lblTitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -114,7 +143,6 @@ public class JuegoDeCartasGUI extends JPanel {
         tf.setHorizontalAlignment(JTextField.CENTER);
         tf.setBackground(new Color(30, 30, 40));
         tf.setForeground(Color.WHITE);
-        tf.setCaretColor(Color.WHITE);
         return tf;
     }
 
@@ -138,7 +166,15 @@ public class JuegoDeCartasGUI extends JPanel {
                 btn.setBackground(new Color(40, 40, 45));
                 btn.setBorder(null);
                 final int f = i, c = j;
-                btn.addActionListener(e -> seleccionarCarta(f, c));
+                
+                // AQUÍ SE AÑADEN LOS MENSAJES DE PRUEBA
+                btn.addActionListener(e -> {
+                    System.out.println("Botón presionado en: Fila " + f + ", Columna " + c);
+                    // Descomenta la siguiente línea si quieres un mensaje emergente CADA vez que tocas una carta:
+                    // JOptionPane.showMessageDialog(this, "Click en: " + f + "," + c);
+                    seleccionarCarta(f, c);
+                });
+                
                 botonesCartas[i][j] = btn;
                 panelTablero.add(btn);
             }
@@ -156,7 +192,6 @@ public class JuegoDeCartasGUI extends JPanel {
         btn.setBackground(color);
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
-        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
     }
 
     private JPanel crearPanelJugadorJuego(int num) {
@@ -174,9 +209,14 @@ public class JuegoDeCartasGUI extends JPanel {
 
     private void seleccionarCarta(int f, int c) {
         JButton btn = botonesCartas[f][c];
+        
+        // Bloqueo si la carta ya está emparejada (fondo negro)
         if (btn.getBackground().equals(Color.BLACK) || btn == primerBotonSeleccionado) return;
 
-        btn.setIcon(imagenesBalatro[valoresCartas[f][c]]);
+        // Mostrar imagen asignada
+        int idImagen = valoresCartas[f][c];
+        btn.setIcon(imagenesBalatro[idImagen]);
+        System.out.println("Mostrando imagen ID: " + idImagen);
 
         if (primerBotonSeleccionado == null) {
             primerBotonSeleccionado = btn;
@@ -185,12 +225,14 @@ public class JuegoDeCartasGUI extends JPanel {
             segundoBotonSeleccionado = btn;
             segundaFila = f; segundaColumna = c;
             
+            // Comparación instantánea
             if (valoresCartas[primeraFila][primeraColumna] == valoresCartas[segundaFila][segundaColumna]) {
+                JOptionPane.showMessageDialog(this, "¡COINCIDENCIA ENCONTRADA!");
                 primerBotonSeleccionado.setBackground(Color.BLACK);
                 segundoBotonSeleccionado.setBackground(Color.BLACK);
                 sumarPunto();
             } else {
-                JOptionPane.showMessageDialog(this, "¡No es coincidencia!");
+                JOptionPane.showMessageDialog(this, "NO SON IGUALES");
                 primerBotonSeleccionado.setIcon(dorsoCarta);
                 segundoBotonSeleccionado.setIcon(dorsoCarta);
                 cambiarTurno();
@@ -215,7 +257,7 @@ public class JuegoDeCartasGUI extends JPanel {
 
     private void mezclarCartas() {
         List<Integer> lista = new ArrayList<>();
-        // Llenar 36 espacios usando 6 imágenes (cada una aparece 6 veces, formando tríos de parejas)
+        // 6 imágenes x 6 veces cada una = 36 cartas
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 6; j++) {
                 lista.add(i);
@@ -233,30 +275,34 @@ public class JuegoDeCartasGUI extends JPanel {
     private void iniciarJuegoGUI() {
         lblNombreJ1.setText(txtJugador1.getText());
         lblNombreJ2.setText(txtJugador2.getText());
-        lblNombreJ1.setForeground(Color.YELLOW);
+        lblNombreJ1.setForeground(Color.YELLOW); // Indica turno del J1
+        lblNombreJ2.setForeground(Color.WHITE);
         lblAciertosJ1.setText("0"); lblAciertosJ2.setText("0");
         
-        // Reiniciar visualmente todos los botones antes de empezar
+        // REINICIO TOTAL DEL TABLERO
         for(int i=0; i<6; i++) {
             for(int j=0; j<6; j++) {
                 botonesCartas[i][j].setIcon(dorsoCarta);
                 botonesCartas[i][j].setBackground(new Color(40, 40, 45));
+                botonesCartas[i][j].setEnabled(true);
             }
         }
         
         mezclarCartas();
         ((CardLayout)getLayout()).show(this, "JUEGO");
+        System.out.println("Partida iniciada y cartas mezcladas.");
     }
 
     private void volverAlMenu() {
         primerBotonSeleccionado = null;
         segundoBotonSeleccionado = null;
         ((CardLayout)getLayout()).show(this, "INICIO");
+        System.out.println("Regresando al menú principal.");
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            JFrame f = new JFrame("Balatro Mini");
+            JFrame f = new JFrame("Balatro Depuración");
             f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             f.setSize(550, 750); 
             f.add(new JuegoDeCartasGUI(f));
