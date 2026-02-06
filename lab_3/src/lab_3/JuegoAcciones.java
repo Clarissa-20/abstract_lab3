@@ -8,8 +8,8 @@ package lab_3;
  *
  * @author HP
  */
-public interface JuegoAcciones {
+interface JuegoAcciones {
     void iniciarJuego();
     boolean verificarPareja(Carta c1, Carta c2);
-    void finalizar();
+    void finalizarPartida();
 }

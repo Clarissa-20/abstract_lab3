@@ -8,7 +8,7 @@ package lab_3;
  *
  * @author HP
  */
-public interface ControlTurnos {
+interface ControlTurnos {
     void cambiarTurno();
     void actualizarMarcador();
 }
